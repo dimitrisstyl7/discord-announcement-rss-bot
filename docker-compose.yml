@@ -8,5 +8,6 @@ services:
       - ANNOUNCEMENTS_WEBHOOK_URL=${ANNOUNCEMENTS_WEBHOOK_URL}
       - ERRORS_WEBHOOK_URL=${ERRORS_WEBHOOK_URL}
       - LAST_ANNOUNCEMENT_ID_FILE=${LAST_ANNOUNCEMENT_ID_FILE}
+      - RSS_URL=${RSS_URL}
     volumes:
       - ./last_announcement_id.txt:/app/last_announcement_id.txt

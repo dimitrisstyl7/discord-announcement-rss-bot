@@ -14,6 +14,9 @@ ERRORS_WEBHOOK_URL = os.getenv("ERRORS_WEBHOOK_URL")
 # Last announcement ID file
 LAST_ANNOUNCEMENT_ID_FILE = os.getenv("LAST_ANNOUNCEMENT_ID_FILE")
 
+# RSS feed URL
+RSS_URL = os.getenv("RSS_URL")
+
 # Create a logger instance
 logger = getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -48,11 +51,8 @@ def fetch_announcements():
     try:
         messages = []
 
-        # URL of the RSS feed
-        rss_url = "https://thales.cs.unipi.gr/modules/announcements/rss.php?c=TMG118"
-
         # Parse the RSS feed
-        feed = feedparser.parse(rss_url)
+        feed = feedparser.parse(RSS_URL)
 
         # Get the latest 5 announcements
         entries = feed.entries[:5]
