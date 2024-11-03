@@ -12,7 +12,7 @@ ANNOUNCEMENTS_WEBHOOK_URL = os.getenv("ANNOUNCEMENTS_WEBHOOK_URL")
 ERRORS_WEBHOOK_URL = os.getenv("ERRORS_WEBHOOK_URL")
 
 # Last announcement ID file
-LAST_ANNOUNCEMENT_ID_FILE = os.getenv("LAST_ANNOUNCEMENT_ID_FILE")
+LAST_ANNOUNCEMENT_ID_FILE = os.getenv("LAST_ANNOUNCEMENT_ID_FILE", "/app/last_announcement_id.txt")
 
 # RSS feed URL
 RSS_URL = os.getenv("RSS_URL")
@@ -39,7 +39,7 @@ def save_last_announcement_id(announcement_id):
 def read_last_announcement_id():
     try:
         with open(LAST_ANNOUNCEMENT_ID_FILE, "r") as f:
-            return f.read()
+            return f.read().strip()
     except Exception as e:
         logger.error(f"Failed to read last announcement ID: {e}")
         send_discord_message(f"Failed to read last announcement ID: {e}", ERRORS_WEBHOOK_URL)
@@ -104,7 +104,7 @@ def send_discord_message(content, webhook_url):
     response = requests.post(webhook_url, json=data)
 
     # Check if the message was not sent successfully
-    if not response.status_code == 204:
+    if response.status_code != 204:
         error = response.json()
         logger.error(msg=f"Failed to send message: {response.status_code} - {error}")
 

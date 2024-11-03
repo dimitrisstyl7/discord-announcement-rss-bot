@@ -11,4 +11,4 @@ RUN pip install -r requirements.txt
 COPY app/ ./
 
 # Run the Python script
-CMD ["python", "announcements_bot.py"]
+CMD ["python", "announcements-bot.py"]
