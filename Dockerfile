@@ -1,12 +1,14 @@
-FROM python:3.12.4
+FROM python:3.14.0a1-slim-bookworm
 
-# Copy requirements.txt, Python script and .env file
-ADD requirements.txt .
-ADD secretary_announcements.py .
-ADD .env .
+# Set the working directory
+WORKDIR /app
 
-# Install dependencies
+# Copy requirements.txt and install dependencies
+COPY app/requirements.txt .
 RUN pip install -r requirements.txt
 
+# Copy the rest of the application code
+COPY app/ .
+
 # Run the Python script
-CMD ["python", "./secretary_announcements.py"]
+CMD ["python", "./announcements_bot.py"]

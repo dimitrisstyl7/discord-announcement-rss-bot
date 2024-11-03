@@ -6,10 +6,6 @@ from logging import getLogger
 import feedparser
 import requests
 from bs4 import BeautifulSoup
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv()
 
 # Discord webhook URLs
 ANNOUNCEMENTS_WEBHOOK_URL = os.getenv("ANNOUNCEMENTS_WEBHOOK_URL")
