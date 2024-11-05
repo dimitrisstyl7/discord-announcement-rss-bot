@@ -6,6 +6,10 @@ from logging import getLogger
 import feedparser
 import requests
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Discord webhook URLs
 ANNOUNCEMENTS_WEBHOOK_URL = os.getenv("ANNOUNCEMENTS_WEBHOOK_URL")
@@ -29,25 +33,30 @@ if not os.path.exists(LAST_ANNOUNCEMENT_ID_FILE):
         f.write("-1")
 
 
-# Function to save the last announcement ID to a file
 def save_last_announcement_id(announcement_id):
-    with open(LAST_ANNOUNCEMENT_ID_FILE, "w") as f:
-        logger.info(f"Saving last announcement ID (ID: {announcement_id}) to file.")
-        f.write(announcement_id)
+    """Save the last announcement ID to a file."""
+    try:
+        with open(LAST_ANNOUNCEMENT_ID_FILE, "w") as f:
+            logger.info(f"Saving last announcement ID (ID: {announcement_id}) to file.")
+            f.write(announcement_id)
+    except Exception as e:
+        logger.error(f"Failed to save last announcement ID: {e}")
+        send_discord_message(f"Failed to save last announcement ID: {e}", ERRORS_WEBHOOK_URL)
 
 
-# Function to read the last announcement ID from a file
 def read_last_announcement_id():
+    """Read the last announcement ID from a file."""
     try:
         with open(LAST_ANNOUNCEMENT_ID_FILE, "r") as f:
             return f.read().strip()
     except Exception as e:
         logger.error(f"Failed to read last announcement ID: {e}")
         send_discord_message(f"Failed to read last announcement ID: {e}", ERRORS_WEBHOOK_URL)
+        return "-1"
 
 
-# Function to fetch announcements using RSS feed
 def fetch_announcements():
+    """Fetch announcements using RSS feed."""
     logger.info("Fetching announcements...")
     try:
         messages = []
@@ -62,8 +71,7 @@ def fetch_announcements():
         last_announcement_id = read_last_announcement_id()
 
         # Loop through each announcement and build the message
-        for i in range(len(entries)):
-            entry = entries[i]
+        for i, entry in enumerate(entries):
             announcement_id = entry.link.split("an_id=")[1].split("&")[0]
 
             # Check if the announcement is new
@@ -99,19 +107,19 @@ def fetch_announcements():
         send_discord_message(f"Failed to fetch announcements: {e}", ERRORS_WEBHOOK_URL)
 
 
-# Function to send a message to a Discord webhook URL
 def send_discord_message(content, webhook_url):
+    """Send a message to a Discord webhook URL."""
     data = {"content": content}
-    response = requests.post(webhook_url, json=data)
+    try:
+        response = requests.post(webhook_url, json=data)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Failed to send message: {e}")
+        send_discord_message(f"Failed to send message: {e}", ERRORS_WEBHOOK_URL)
 
-    # Check if the message was not sent successfully
-    if response.status_code != 204:
-        error = response.json()
-        logger.error(msg=f"Failed to send message: {response.status_code} - {error}")
 
-
-# Function to run the job every 30 minutes
 def job():
+    """Run the job every 30 minutes."""
     fetch_announcements()
     seconds = 30 * 60
     threading.Timer(seconds, job).start()
