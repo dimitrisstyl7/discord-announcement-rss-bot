@@ -11,8 +11,8 @@ from bs4 import BeautifulSoup
 ANNOUNCEMENTS_WEBHOOK_URL = os.getenv("ANNOUNCEMENTS_WEBHOOK_URL")
 ERRORS_WEBHOOK_URL = os.getenv("ERRORS_WEBHOOK_URL")
 
-# Last announcement ID file
-LAST_ANNOUNCEMENT_ID_FILE = os.getenv("LAST_ANNOUNCEMENT_ID_FILE", "/app/last_announcement_id.txt")
+LAST_ANNOUNCEMENT_ID_DIR = os.getenv("LAST_ANNOUNCEMENT_ID_DIR", "/app/data")
+LAST_ANNOUNCEMENT_ID_FILE = os.path.join(LAST_ANNOUNCEMENT_ID_DIR, "last_announcement_id.txt")
 
 # RSS feed URL
 RSS_URL = os.getenv("RSS_URL")
@@ -24,6 +24,7 @@ logging.basicConfig(level=logging.INFO)
 # Create the last announcement ID file if it doesn't exist
 if not os.path.exists(LAST_ANNOUNCEMENT_ID_FILE):
     logger.info("Creating last announcement ID file.")
+    os.makedirs(LAST_ANNOUNCEMENT_ID_DIR, exist_ok=True)
     with open(LAST_ANNOUNCEMENT_ID_FILE, "w") as f:
         f.write("-1")
 
