@@ -4,11 +4,8 @@ FROM python:3.10-slim
 WORKDIR /app
 
 # Copy requirements.txt and install dependencies
-COPY app/requirements.txt ./
-RUN pip install -r requirements.txt
-
-# Copy the rest of the application code
 COPY app/ ./
+RUN pip install -r requirements.txt
 
 # Run the Python script
 CMD ["python", "announcements-bot.py"]
