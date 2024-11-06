@@ -85,12 +85,12 @@ def fetch_announcements():
             # Get announcement details
             title = entry.title
             link = entry.link
-            summary = entry.summary
+            description = entry.description
 
-            # Parse summary with BeautifulSoup
-            soup = BeautifulSoup(summary, 'lxml')
+            # Parse description with BeautifulSoup
+            soup = BeautifulSoup(description, 'lxml')
 
-            # Get summary plain text
+            # Get description plain text
             content = soup.get_text().replace('\xa0', ' ')
 
             # Build the message with title, link, and content
