@@ -8,7 +8,6 @@ services:
     environment:
       ANNOUNCEMENTS_WEBHOOK_URL: ${ANNOUNCEMENTS_WEBHOOK_URL}  # Discord webhook URL for announcements
       ERRORS_WEBHOOK_URL: ${ERRORS_WEBHOOK_URL}  # Discord webhook URL for error messages
-      LAST_ANNOUNCEMENT_ID_DIR: /app/data  # Directory to store the last announcement ID file
       RSS_URL: ${RSS_URL}  # RSS feed URL
     volumes:
       - ./docker_hub/announcements/data:/app/data  # Mount the directory to persist data
