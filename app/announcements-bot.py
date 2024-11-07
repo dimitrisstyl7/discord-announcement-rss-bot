@@ -7,6 +7,8 @@ import feedparser
 import requests
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
+from datetime import datetime
+
 
 # Load environment variables from .env file
 load_dotenv()
@@ -93,8 +95,11 @@ def fetch_announcements():
             # Get description plain text
             content = soup.get_text().replace('\xa0', ' ')
 
+            # Get and format the publication date
+            pub_date = datetime(*entry.published_parsed[:6]).strftime("%d/%m/%y")
+
             # Build the message with title, link, and content
-            message = f"**{title}**\t[🔗]({link})\n\n{content}\n\n"
+            message = f"@everyone **{title} ({pub_date})**\t[🔗]({link})\n\n{content}\n\n"
 
             # Append the message to the list
             messages.append(message)
@@ -119,9 +124,9 @@ def send_discord_message(content, webhook_url):
 
 
 def job():
-    """Run the job every 30 minutes."""
+    """Run the job every 15 minutes."""
     fetch_announcements()
-    seconds = 30 * 60
+    seconds = 15 * 60
     threading.Timer(seconds, job).start()
 
 
