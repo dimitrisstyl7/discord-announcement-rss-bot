@@ -99,7 +99,7 @@ def fetch_announcements():
             pub_date = datetime(*entry.published_parsed[:6]).strftime("%d/%m/%y")
 
             # Build the message with title, link, and content
-            message = f"@everyone **{title} ({pub_date})**\t[🔗]({link})\n\n{content}\n\n"
+            message = f"@everyone \n **{title} (Δημοσιεύτηκε: {pub_date})**\t[🔗]({link})\n\n{content}\n\n"
 
             # Append the message to the list
             messages.append(message)
