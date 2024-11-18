@@ -1,0 +1,14 @@
+version: '3.8'  # Specify the Docker Compose file format version
+
+services:
+  announcements-bot:
+    build:
+      context: .  # Build from the current directory
+      dockerfile: Dockerfile  # Use the specified Dockerfile
+    environment:
+      ANNOUNCEMENTS_WEBHOOK_URL: ${ANNOUNCEMENTS_WEBHOOK_URL}  # Discord webhook URL for announcements
+      ERRORS_WEBHOOK_URL: ${ERRORS_WEBHOOK_URL}  # Discord webhook URL for error messages
+      RSS_URL: ${RSS_URL}  # RSS feed URL
+    volumes:
+      - ./docker_hub/announcements/data:/app/data  # Mount the directory to persist data
+    restart: unless-stopped  # Restart policy for the service

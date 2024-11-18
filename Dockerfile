@@ -1,12 +1,11 @@
-FROM python:3.12.4
+FROM python:3.10-slim
 
-# Copy requirements.txt, Python script and .env file
-ADD requirements.txt .
-ADD secretary_announcements.py .
-ADD .env .
+# Set the working directory
+WORKDIR /app
 
-# Install dependencies
+# Copy requirements.txt and install dependencies
+COPY app/ ./
 RUN pip install -r requirements.txt
 
 # Run the Python script
-CMD ["python", "./secretary_announcements.py"]
+CMD ["python", "announcements-bot.py"]
