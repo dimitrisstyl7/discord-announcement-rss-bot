@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from datetime import datetime
 
 
-# Load environment variables from .env file
+# Load environment variables
 load_dotenv()
 
 # Discord webhook URLs
