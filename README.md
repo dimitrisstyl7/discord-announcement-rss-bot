@@ -3,11 +3,11 @@
 ## Description
 This bot fetches announcements from a university's eClass announcements section (via RSS) and posts them in a Discord channel using webhooks.
 
-The current implementation in `announcements-bot.py`, specifically the function [`fetch_announcements`](app/announcements-bot.py#L60-L112),
+The current implementation in `announcements-bot.py`, specifically the function [`fetch_announcements`](app/announcements-bot.py#L36-L88),
 is tailored to handle the data structure of the [RSS feed](https://thales.cs.unipi.gr/modules/announcements/rss.php?c=TMG118) of the
 [eClass system](https://thales.cs.unipi.gr/modules/announcements/?course=TMG118) used by the _University of Piraeus - Department of Informatics_.
 
-To use the script with other RSS-supported websites, you will need to modify the logic in [`fetch_announcements`](app/announcements-bot.py#L60-L112)
+To use the script with other RSS-supported websites, you will need to modify the logic in [`fetch_announcements`](app/announcements-bot.py#L36-L88)
 to match the RSS feed structure of the target website.
 
 ## Features
