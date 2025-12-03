@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   announcements-bot:
     image: thkox/announcements-bot:latest  # Replace with your actual image name and tag
