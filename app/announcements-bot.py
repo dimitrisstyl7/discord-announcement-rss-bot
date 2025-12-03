@@ -1,38 +1,14 @@
 import logging
 import os
-import threading
+import time
+from datetime import datetime
 from logging import getLogger
 
 import feedparser
 import requests
+from apscheduler.schedulers.background import BackgroundScheduler
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
-from datetime import datetime
-
-
-# Load environment variables
-load_dotenv()
-
-# Discord webhook URLs
-ANNOUNCEMENTS_WEBHOOK_URL = os.getenv("ANNOUNCEMENTS_WEBHOOK_URL")
-ERRORS_WEBHOOK_URL = os.getenv("ERRORS_WEBHOOK_URL")
-
-LAST_ANNOUNCEMENT_ID_DIR = os.getenv("LAST_ANNOUNCEMENT_ID_DIR", "/app/data")
-LAST_ANNOUNCEMENT_ID_FILE = os.path.join(LAST_ANNOUNCEMENT_ID_DIR, "last_announcement_id.txt")
-
-# RSS feed URL
-RSS_URL = os.getenv("RSS_URL")
-
-# Create a logger instance
-logger = getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
-
-# Create the last announcement ID file if it doesn't exist
-if not os.path.exists(LAST_ANNOUNCEMENT_ID_FILE):
-    logger.info("Creating last announcement ID file.")
-    os.makedirs(LAST_ANNOUNCEMENT_ID_DIR, exist_ok=True)
-    with open(LAST_ANNOUNCEMENT_ID_FILE, "w") as f:
-        f.write("-1")
 
 
 def save_last_announcement_id(announcement_id):
@@ -120,15 +96,55 @@ def send_discord_message(content, webhook_url):
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
         logger.error(f"Failed to send message: {e}")
-        send_discord_message(f"Failed to send message: {e}", ERRORS_WEBHOOK_URL)
 
 
-def job():
-    """Run the job every 15 minutes."""
+if __name__ == "__main__":
+    # Load environment variables
+    load_dotenv()
+
+    # Discord webhook URLs
+    ANNOUNCEMENTS_WEBHOOK_URL = os.getenv("ANNOUNCEMENTS_WEBHOOK_URL")
+    ERRORS_WEBHOOK_URL = os.getenv("ERRORS_WEBHOOK_URL")
+
+    LAST_ANNOUNCEMENT_ID_DIR = os.getenv("LAST_ANNOUNCEMENT_ID_DIR", "./data")
+    LAST_ANNOUNCEMENT_ID_FILE = os.path.join(LAST_ANNOUNCEMENT_ID_DIR, "last_announcement_id.txt")
+
+    # RSS feed URL
+    RSS_URL = os.getenv("RSS_URL")
+
+    # Create a logger instance
+    logger = getLogger(__name__)
+    logging.basicConfig(level=logging.INFO)
+
+    # Create the last announcement ID file if it doesn't exist
+    if not os.path.exists(LAST_ANNOUNCEMENT_ID_FILE):
+        logger.info("Creating last announcement ID file.")
+        os.makedirs(LAST_ANNOUNCEMENT_ID_DIR, exist_ok=True)
+        with open(LAST_ANNOUNCEMENT_ID_FILE, "w") as f:
+            f.write("-1")
+
+    # Create a scheduler
+    scheduler = BackgroundScheduler()
+
+    # Add the job with specific constraints
+    scheduler.add_job(
+        func=fetch_announcements,
+        trigger='cron',
+        day_of_week='mon-fri',
+        hour='8-22',
+        minute='*/30'  # Run every 30 minutes
+    )
+
+    # Run the logic immediately when the script starts.
+    # Without this, if you start at 20:48, it does nothing until 21:00.
+    logger.info("Performing initial startup check...")
     fetch_announcements()
-    seconds = 15 * 60
-    threading.Timer(seconds, job).start()
 
+    scheduler.start()
+    logger.info("Scheduler started. Waiting for next scheduled run.")
 
-# Start the job
-job()
+    try:
+        while True:
+            time.sleep(2)
+    except (KeyboardInterrupt, SystemExit):
+        scheduler.shutdown()
