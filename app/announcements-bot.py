@@ -39,8 +39,9 @@ def fetch_announcements():
     try:
         messages = []
 
-        # Parse the RSS feed
-        feed = feedparser.parse(RSS_URL)
+        # Parse the raw content from the response
+        response = requests.get(RSS_URL, timeout=30, verify=False)
+        feed = feedparser.parse(response.content)
 
         # Get the latest 5 announcements
         entries = feed.entries[:5]
