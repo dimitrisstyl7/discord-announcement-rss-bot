@@ -1,10 +1,10 @@
 services:
   announcements-bot:
-    image: thkox/announcements-bot:latest  # Replace with your actual image name and tag
+    image: dimitrisstyl7/discord-announcement-rss-bot:latest  # Replace with your actual image name and tag
     environment:
       ANNOUNCEMENTS_WEBHOOK_URL: ${ANNOUNCEMENTS_WEBHOOK_URL}  # Discord webhook URL for announcements
       ERRORS_WEBHOOK_URL: ${ERRORS_WEBHOOK_URL}  # Discord webhook URL for error messages
       RSS_URL: ${RSS_URL}  # RSS feed URL
     volumes:
-      - ./docker_hub/announcements/data:/app/data  # Mount the directory to persist data
+      - ./app/data:/app/data  # Mount the directory to persist data
     restart: unless-stopped  # Restart policy for the service

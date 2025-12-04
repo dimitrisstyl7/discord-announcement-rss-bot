@@ -8,5 +8,5 @@ services:
       ERRORS_WEBHOOK_URL: ${ERRORS_WEBHOOK_URL}  # Discord webhook URL for error messages
       RSS_URL: ${RSS_URL}  # RSS feed URL
     volumes:
-      - ./docker_hub/announcements/data:/app/data  # Mount the directory to persist data
+      - ./app/data:/app/data  # Mount the directory to persist data
     restart: unless-stopped  # Restart policy for the service
