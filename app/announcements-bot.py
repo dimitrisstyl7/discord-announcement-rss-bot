@@ -51,7 +51,12 @@ def fetch_announcements():
 
         # Loop through each announcement and build the message
         for i, entry in enumerate(entries):
-            announcement_id = entry.link.split("an_id=")[1].split("&")[0]
+            # Extract ID safely
+            try:
+                announcement_id = entry.link.split("an_id=")[1].split("&")[0]
+            except IndexError:
+                logger.warning(f"Could not parse ID from link: {entry.link}")
+                continue
 
             # Check if the announcement is new
             if announcement_id == last_announcement_id:
@@ -73,7 +78,10 @@ def fetch_announcements():
             content = soup.get_text().replace('\xa0', ' ')
 
             # Get and format the publication date
-            pub_date = datetime(*entry.published_parsed[:6]).strftime("%d/%m/%y")
+            try:
+                pub_date = datetime(*entry.published_parsed[:6]).strftime("%d/%m/%y")
+            except TypeError:
+                pub_date = "Unknown Date"
 
             # Build the message with title, link, and content
             message = f"@everyone \n **{title} (Δημοσιεύτηκε: {pub_date})**\t[🔗]({link})\n\n{content}\n\n"
@@ -84,6 +92,8 @@ def fetch_announcements():
         # Send the announcements to Discord channel
         for message in messages:
             send_discord_message(message, ANNOUNCEMENTS_WEBHOOK_URL)
+            time.sleep(1)  # Rate limit protection for Discord
+
     except Exception as e:
         logger.error(f"Failed to fetch announcements: {e}")
         send_discord_message(f"Failed to fetch announcements: {e}", ERRORS_WEBHOOK_URL)
