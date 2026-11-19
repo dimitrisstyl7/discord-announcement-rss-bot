@@ -1,14 +1,11 @@
+import feedparser
 import logging
 import os
+import requests
 import time
+from bs4 import BeautifulSoup
 from datetime import datetime
 from logging import getLogger
-
-import feedparser
-import requests
-from apscheduler.schedulers.background import BackgroundScheduler
-from bs4 import BeautifulSoup
-from dotenv import load_dotenv
 
 
 def save_last_announcement_id(announcement_id):
@@ -19,7 +16,7 @@ def save_last_announcement_id(announcement_id):
             f.write(announcement_id)
     except Exception as e:
         logger.error(f"Failed to save last announcement ID: {e}")
-        send_discord_message(f"Failed to save last announcement ID: {e}", ERRORS_WEBHOOK_URL)
+        raise
 
 
 def read_last_announcement_id():
@@ -29,8 +26,7 @@ def read_last_announcement_id():
             return f.read().strip()
     except Exception as e:
         logger.error(f"Failed to read last announcement ID: {e}")
-        send_discord_message(f"Failed to read last announcement ID: {e}", ERRORS_WEBHOOK_URL)
-        return "-1"
+        raise
 
 
 def fetch_announcements():
@@ -41,6 +37,7 @@ def fetch_announcements():
 
         # Parse the raw content from the response
         response = requests.get(RSS_URL, timeout=30, verify=False)
+        response.raise_for_status()
         feed = feedparser.parse(response.content)
 
         # Get the latest 5 announcements
@@ -50,7 +47,7 @@ def fetch_announcements():
         last_announcement_id = read_last_announcement_id()
 
         # Loop through each announcement and build the message
-        for i, entry in enumerate(entries):
+        for entry in entries:
             # Extract ID safely
             try:
                 announcement_id = entry.link.split("an_id=")[1].split("&")[0]
@@ -61,10 +58,6 @@ def fetch_announcements():
             # Check if the announcement is new
             if announcement_id == last_announcement_id:
                 break
-
-            if i == 0:
-                # Save the last announcement ID to a file
-                save_last_announcement_id(announcement_id)
 
             # Get announcement details
             title = entry.title
@@ -87,32 +80,36 @@ def fetch_announcements():
             message = f"@everyone \n **{title} (Δημοσιεύτηκε: {pub_date})**\t[🔗]({link})\n\n{content}\n\n"
 
             # Append the message to the list
-            messages.append(message)
+            messages.append((announcement_id, message))
 
         # Send the announcements to Discord channel
-        for message in messages:
+        for announcement_id, message in reversed(messages):
             send_discord_message(message, ANNOUNCEMENTS_WEBHOOK_URL)
+            # Save the last announcement ID to a file
+            save_last_announcement_id(announcement_id)
             time.sleep(1)  # Rate limit protection for Discord
 
     except Exception as e:
         logger.error(f"Failed to fetch announcements: {e}")
-        send_discord_message(f"Failed to fetch announcements: {e}", ERRORS_WEBHOOK_URL)
+        try:
+            send_discord_message(f"Failed to fetch announcements: {e}", ERRORS_WEBHOOK_URL)
+        except requests.exceptions.RequestException as notification_error:
+            logger.error(f"Failed to send error notification: {notification_error}")
+        raise
 
 
 def send_discord_message(content, webhook_url):
     """Send a message to a Discord webhook URL."""
     data = {"content": content}
     try:
-        response = requests.post(webhook_url, json=data)
+        response = requests.post(webhook_url, json=data, timeout=30)
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
         logger.error(f"Failed to send message: {e}")
+        raise
 
 
 if __name__ == "__main__":
-    # Load environment variables
-    load_dotenv()
-
     # Discord webhook URLs
     ANNOUNCEMENTS_WEBHOOK_URL = os.getenv("ANNOUNCEMENTS_WEBHOOK_URL")
     ERRORS_WEBHOOK_URL = os.getenv("ERRORS_WEBHOOK_URL")
@@ -134,28 +131,4 @@ if __name__ == "__main__":
         with open(LAST_ANNOUNCEMENT_ID_FILE, "w") as f:
             f.write("-1")
 
-    # Create a scheduler
-    scheduler = BackgroundScheduler()
-
-    # Add the job with specific constraints
-    scheduler.add_job(
-        func=fetch_announcements,
-        trigger='cron',
-        day_of_week='mon-fri',
-        hour='8-22',
-        minute='*/30'  # Run every 30 minutes
-    )
-
-    # Run the logic immediately when the script starts.
-    # Without this, if you start at 20:48, it does nothing until 21:00.
-    logger.info("Performing initial startup check...")
     fetch_announcements()
-
-    scheduler.start()
-    logger.info("Scheduler started. Waiting for next scheduled run.")
-
-    try:
-        while True:
-            time.sleep(2)
-    except (KeyboardInterrupt, SystemExit):
-        scheduler.shutdown()
