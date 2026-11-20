@@ -2,7 +2,7 @@ name: Announcements
 
 on:
   schedule:
-    - cron: "0 8-20 * * 1-5"
+    - cron: "0,30 8-20 * * 1-5"
       timezone: Europe/Athens
   workflow_dispatch:
 
@@ -27,7 +27,7 @@ jobs:
       - run: pip install -r app/requirements.txt
       - name: Check announcements
         id: check
-        run: python app/announcements-bot.py
+        run: python app/announcements-bot.py --once
         env:
           ANNOUNCEMENTS_WEBHOOK_URL: ${{ secrets.ANNOUNCEMENTS_WEBHOOK_URL }}
           ERRORS_WEBHOOK_URL: ${{ secrets.ERRORS_WEBHOOK_URL }}
@@ -47,4 +47,3 @@ jobs:
           git commit -m "Update announcement checkpoint"
           git pull --rebase origin "$DEFAULT_BRANCH"
           git push origin "HEAD:refs/heads/$DEFAULT_BRANCH"
-          
